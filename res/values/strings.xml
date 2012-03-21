@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="trackie">Track me!</string>
+    <string name="app_name">Mapper</string>
+    <string name="showtrip">Details</string>
+    <string name="time">Time Threshold</string>
+    <string name="dist">Dist. Thr.</string>
+
+</resources>

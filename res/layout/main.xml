@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Switch
+            android:id="@+id/trackie"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trackie" />
+
+        <Button
+            android:id="@+id/showTrip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/showtrip" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="73dp"
+            android:layout_height="wrap_content"
+            android:text="@string/time" />
+
+        <SeekBar
+            android:id="@+id/timBar"
+            android:layout_width="92dp"
+            android:layout_height="wrap_content"
+            android:max="10000" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:text="@string/dist" />
+
+        <SeekBar
+            android:id="@+id/disBar"
+            android:layout_width="123dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"/>
+
+    </LinearLayout>
+
+    <com.google.android.maps.MapView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/mappie"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.85"
+        android:clickable="true"
+        android:apiKey="YOUR_API_KEY" />
+
+    
+</LinearLayout>
