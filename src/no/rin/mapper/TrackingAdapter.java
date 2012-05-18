@@ -12,11 +12,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 
-public class SQLiteAdapter {
+public class TrackingAdapter {
 
 	public static final String MYDATABASE_NAME = "MY_DATABASE";
 	public static final String MYDATABASE_TABLE = "MY_TABLE";
-	public static final int MYDATABASE_VERSION = 1;
+	public static final int MYDATABASE_VERSION = 5;
 	public static final String KEY_ID = "Trip";
 	public static final String KEY_LAT = "Latitude";
 	public static final String KEY_LON = "Longtitude";
@@ -33,17 +33,17 @@ public class SQLiteAdapter {
 
 	private Context context;
 
-	public SQLiteAdapter(Context c){
+	public TrackingAdapter(Context c){
 		context = c;
 	}
 
-	public SQLiteAdapter openToRead() throws android.database.SQLException {
+	public TrackingAdapter openToRead() throws android.database.SQLException {
 		sqLiteHelper = new SQLiteHelper(context, MYDATABASE_NAME, null, MYDATABASE_VERSION);
 		sqLiteDatabase = sqLiteHelper.getReadableDatabase();
 		return this; 
 	}
 
-	public SQLiteAdapter open() throws android.database.SQLException {
+	public TrackingAdapter open() throws android.database.SQLException {
 		sqLiteHelper = new SQLiteHelper(context, MYDATABASE_NAME, null, MYDATABASE_VERSION);
 		sqLiteDatabase = sqLiteHelper.getWritableDatabase();
 		return this; 
@@ -100,7 +100,6 @@ public class SQLiteAdapter {
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			// TODO Auto-generated method stub
-
 		}
 
 	}

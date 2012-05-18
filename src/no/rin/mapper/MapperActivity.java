@@ -1,6 +1,9 @@
 package no.rin.mapper;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -9,7 +12,9 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -18,6 +23,7 @@ import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,11 +35,13 @@ import android.widget.Toast;
 public class MapperActivity extends MapActivity {
 	public static String PROXIMITY_ALERT = "no.rin.mapper.LASTPOINT";
 
+    Uri uriUrl = Uri.parse("http://go-ringe.rhcloud.com/contests");
+        
 	private String providerName;
 	private LocationManager locationManager;
 	private MapView mapView;
 	private MapController mapController;
-	private SQLiteAdapter dba;
+	private TrackingAdapter trackingDB;
 	
 	private List<Overlay> mapOverlays;
 	private Projection projection;
@@ -47,7 +55,15 @@ public class MapperActivity extends MapActivity {
 	private SeekBar disBar;
 
 	private Button showie;
-	private List<GeoPoint> points;
+	private List<GeoPoint> trackPoints;
+
+	private UserAdapter userDB;
+
+	private List<UserData> users;
+
+	private UserData user;
+
+	private Contest contest;
 
 	 void showToast(CharSequence msg) {
 		 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
@@ -61,7 +77,8 @@ public class MapperActivity extends MapActivity {
 		mapView = (MapView) findViewById(R.id.mappie);
 		mapView.setBuiltInZoomControls(true);
 		mapController = mapView.getController();
-
+		
+		// track movement in app?
 		trackie = (Switch) findViewById(R.id.trackie);
 		trackie.setOnClickListener(new OnClickListener() {
 			@Override
@@ -72,29 +89,39 @@ public class MapperActivity extends MapActivity {
 			}
 		});
 		
-		timBar = (SeekBar) findViewById(R.id.timBar);
-		timBar.setProgress((int)mTime);
-		disBar = (SeekBar) findViewById(R.id.disBar);
-		disBar.setProgress((int)mDist*10);
+		//timBar = (SeekBar) findViewById(R.id.timBar);
+		//timBar.setProgress((int)mTime);
+		//disBar = (SeekBar) findViewById(R.id.disBar);
+		//disBar.setProgress((int)mDist*10);
 		
-		dba = new SQLiteAdapter(this);
-		dba.open();
+		// connect in-app tracking db
+		trackingDB = new TrackingAdapter(this);
+		trackingDB.open();
 		
-		points = dba.selectLast();
+		trackPoints = trackingDB.selectLast();
 		mapController.setZoom(10);
-		mapController.setCenter(points.get(0));
-
+		if(!trackPoints.isEmpty())
+			mapController.setCenter(trackPoints.get(0));
+		
+		// connect user db
+		userDB = new UserAdapter(this);
+		userDB.open();
+		user = new UserData(userDB);
+		showToast("Your name: " + user.getUsername());
+		
+		// ikkke points
+	    final Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);  
 		showie = (Button) findViewById(R.id.showTrip);
 		showie.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				showToast("Trip points [x,y]:\n" + points.toString());
+				startActivity(launchBrowser);
 			}
 		});
 		
 		mapOverlays = mapView.getOverlays();
 		projection = mapView.getProjection();
-		mapOverlays.add(new MyOverlay(dba));
+		mapOverlays.add(new MyOverlay(trackingDB));
 
 		locationManager =
 				(LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -114,8 +141,8 @@ public class MapperActivity extends MapActivity {
 				// if tracking, set proximity, trip id
 				if (trackie.isChecked()) {
 					if (trip == 0)
-						trip = dba.getId();
-					dba.insert(trip, lat.intValue(), lon.intValue());
+						trip = trackingDB.getId();
+					trackingDB.insert(trip, lat.intValue(), lon.intValue());
 					resetLocationListener();
 				}
 			}
@@ -158,7 +185,37 @@ public class MapperActivity extends MapActivity {
 
 		locationManager.requestLocationUpdates(providerName, mTime, mDist, locationListener);
 
+		RebusFetch r = (RebusFetch) new RebusFetch().execute();
+		try {
+			ArrayList<Contest> b = r.get();
+			contest = b.get(b.size()-1);
+			showToast(contest.getname());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		PointFetch p = (PointFetch) new PointFetch(contest.getid()).execute();
+		try {
+			no.rin.mapper.Point point = p.get();
+			showToast("Next rebus is " + point.toString());
+			
+			final Intent happyWow = new Intent(Intent.ACTION_VIEW, uriUrl);
+			final PendingIntent happy = PendingIntent.getBroadcast(this, 0, happyWow, 0);
+			locationManager.addProximityAlert(point.getLat(), point.getLng(), 
+					point.getRange(), -1, happy);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+	
+	
+
+
 
 	@Override
 	protected boolean isRouteDisplayed() {
@@ -166,9 +223,9 @@ public class MapperActivity extends MapActivity {
 	}
 
 	class MyOverlay extends Overlay {
-		private SQLiteAdapter dba;
+		private TrackingAdapter dba;
 
-		public MyOverlay(SQLiteAdapter db) {
+		public MyOverlay(TrackingAdapter db) {
 			dba = db;
 		}
 
@@ -184,16 +241,16 @@ public class MapperActivity extends MapActivity {
 			paint.setStrokeWidth(2);
 
 			if (trip != 0)
-				points = dba.selectAll(trip);
+				trackPoints = dba.selectAll(trip);
 
 			Path path = new Path();
 
-			if (points.size() > 0) {
+			if (trackPoints.size() > 0) {
 				boolean first = true;
 				Point p0 = new Point();
 				Point p = new Point();
 				
-				for(GeoPoint g: points){
+				for(GeoPoint g: trackPoints){
 					projection.toPixels(g, p);
 					if (first) {
 						path.moveTo(p.x, p.y);
