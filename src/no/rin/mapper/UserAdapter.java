@@ -16,7 +16,7 @@ public class UserAdapter {
 
 	public static final String MYDATABASE_NAME = "USERDB";
 	public static final String MYDATABASE_TABLE = "USER_TABLE";
-	public static final int MYDATABASE_VERSION = 2;
+	public static final int MYDATABASE_VERSION = 3;
 	public static final String KEY_ID = "Contest";
 	public static final String KEY_LAT = "Latitude";
 	public static final String KEY_LON = "Longtitude";
@@ -27,8 +27,8 @@ public class UserAdapter {
 	private static final String SCRIPT_CREATE_DATABASE =
 			"create table " + MYDATABASE_TABLE
 			+ " (" + KEY_ID + " integer, "
-			+ KEY_LON + " integer, "
-			+ KEY_LAT + " integer, "
+			+ KEY_LON + " real, "
+			+ KEY_LAT + " real, "
 			+ KEY_USER + " text not null, "
 			+ KEY_REBUS + " text);";
 

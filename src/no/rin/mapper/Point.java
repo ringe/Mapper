@@ -1,7 +1,9 @@
 package no.rin.mapper;
 
 public class Point {
-	private int order, lng, lat, range, contest_id, id;
+	private int order, contest_id, id;
+	private Double lng, lat;
+	private float range;
 	private String rebus, image;
 	
 	public int getOrder() {
@@ -10,22 +12,22 @@ public class Point {
 	public void setOrder(int order) {
 		this.order = order;
 	}
-	public int getLng() {
+	public Double getLng() {
 		return lng;
 	}
-	public void setLng(int lng) {
+	public void setLng(Double lng) {
 		this.lng = lng;
 	}
-	public int getLat() {
+	public Double getLat() {
 		return lat;
 	}
-	public void setLat(int lat) {
+	public void setLat(Double lat) {
 		this.lat = lat;
 	}
-	public int getRange() {
+	public float getRange() {
 		return range;
 	}
-	public void setRange(int range) {
+	public void setRange(float range) {
 		this.range = range;
 	}
 	public int getContest_id() {

@@ -15,6 +15,7 @@ import com.google.android.maps.Projection;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -25,6 +26,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -33,7 +35,7 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 public class MapperActivity extends MapActivity {
-	public static String PROXIMITY_ALERT = "no.rin.mapper.LASTPOINT";
+	public static String PROXIMITY_ALERT_INTENT = "no.rin.mapper.NEXTPOINT";
 
     Uri uriUrl = Uri.parse("http://go-ringe.rhcloud.com/contests");
         
@@ -132,8 +134,8 @@ public class MapperActivity extends MapActivity {
 				//TextView tv = (TextView) findViewById(R.id.hello);
 				//tv.setText("" + lon + " " + lat);
 				location = locationManager.getLastKnownLocation(providerName);		
-				Double lat = location.getLatitude() *1E6;
-				Double lon = location.getLongitude() *1E6;
+				Double lat = location.getLatitude();
+				Double lon = location.getLongitude();
 
 				GeoPoint point = new GeoPoint(lat.intValue(), lon.intValue());
 				mapController.setCenter(point);
@@ -199,11 +201,12 @@ public class MapperActivity extends MapActivity {
 		try {
 			no.rin.mapper.Point point = p.get();
 			showToast("Next rebus is " + point.toString());
+			setProximityAlarm(this, point);
 			
-			final Intent happyWow = new Intent(Intent.ACTION_VIEW, uriUrl);
-			final PendingIntent happy = PendingIntent.getBroadcast(this, 0, happyWow, 0);
-			locationManager.addProximityAlert(point.getLat(), point.getLng(), 
-					point.getRange(), -1, happy);
+//			final Intent happyWow = new Intent(Intent.ACTION_VIEW, uriUrl);
+//			final PendingIntent happy = PendingIntent.getBroadcast(this, 0, happyWow, 0);
+//			locationManager.addProximityAlert(point.getLat(), point.getLng(), 
+//					point.getRange(), -1, happy);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -213,11 +216,23 @@ public class MapperActivity extends MapActivity {
 		}
 	}
 	
+	public void setProximityAlarm(Context context, no.rin.mapper.Point p){
+		
+		Log.i("Alarm at", "Lat: " + p.getLat() + " Lng: " + p.getLng() + " Range: " + p.getRange());
+		
+		IntentFilter filter = new IntentFilter(PROXIMITY_ALERT_INTENT);
+	     context.registerReceiver(new PointRangeReceiver(), filter);
+
+	     Intent mIntent = new Intent(PROXIMITY_ALERT_INTENT);
+	     mIntent.putExtra("alert", "Say hi to grandma");
+
+	     PendingIntent proxIntent = PendingIntent.getBroadcast(context, 0, mIntent, 0);
+				
+	     locationManager.addProximityAlert(p.getLat(), p.getLng(), p.getRange(), -1, proxIntent);
+	}
 	
-
-
-
-	@Override
+	
+		@Override
 	protected boolean isRouteDisplayed() {
 		return false;
 	}

@@ -68,6 +68,7 @@ public class PointFetch extends AsyncTask<String, Void, Point> {
 	    	    ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
 	    	    Log.i("Mama",jp.toString());
 	    	    result = mapper.readValue(jp, Point.class);
+	    	    Log.i("result", "" + result.getLat());
 
 	            instream.close();
 	        }
